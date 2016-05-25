@@ -1,0 +1,4 @@
+[run]
+source = janyson
+omit =
+	janyson/apps.py
