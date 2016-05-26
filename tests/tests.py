@@ -10,7 +10,8 @@ from . import models
 
 
 def add_fields_to_item_model(*args, **kwargs):
-    reload(models)
+    if not kwargs.pop('no_reload', False):
+        reload(models)
     add_fields(*args, **kwargs)(models.Item)
 
 
@@ -78,6 +79,34 @@ FIELDS_WITH_DEFAULT_VALUES = {
         'type': 'dict',
         'use_default': True,
         'default': TEST_DICT_DEFAULT,
+    },
+}
+
+FIELDS_DIR_HIDE_DEFAULT = {
+    'test_default_hide': {
+        'type': 'str',
+        'use_default': True,
+        'default': TEST_STR_DEFAULT,
+        'dir_hide': True,
+    },
+    'test_default_no_hide': {
+        'type': 'str',
+        'use_default': True,
+        'default': TEST_STR_DEFAULT,
+        'dir_hide': False,
+    },
+}
+
+FIELDS_DIR_HIDE_NO_DEFAULT = {
+    'test_no_default_hide': {
+        'type': 'str',
+        'use_default': False,
+        'dir_hide': True,
+    },
+    'test_no_default_no_hide': {
+        'type': 'str',
+        'use_default': False,
+        'dir_hide': False,
     },
 }
 
@@ -196,3 +225,35 @@ class NoDefaultValuesTestCase(TestCase):
     def test_dict_no_default_value_error(self):
         with self.assertRaises(AttributeError):
             self.item.test_dict
+
+
+class DirHideTestCase(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super(DirHideTestCase, cls).setUpClass()
+        add_fields_to_item_model(FIELDS_DIR_HIDE_DEFAULT)
+        add_fields_to_item_model(FIELDS_DIR_HIDE_NO_DEFAULT, no_reload=True)
+
+    def setUp(self):
+        self.item = models.Item(name='dir_hide')
+
+    def test_no_value_no_default_no_hide(self):
+        self.assertIn('test_no_default_no_hide', dir(self.item))
+
+    def test_no_value_no_default_hide(self):
+        self.assertNotIn('test_no_default_hide', dir(self.item))
+
+    def test_value_no_hide(self):
+        self.item.test_no_default_no_hide = 'foo'
+        self.assertIn('test_no_default_no_hide', dir(self.item))
+
+    def test_value_hide(self):
+        self.item.test_no_default_hide = 'foo'
+        self.assertIn('test_no_default_hide', dir(self.item))
+
+    def test_default_no_hide(self):
+        self.assertIn('test_default_no_hide', dir(self.item))
+
+    def test_default_hide(self):
+        self.assertIn('test_default_hide', dir(self.item))

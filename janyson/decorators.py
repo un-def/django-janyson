@@ -8,7 +8,7 @@ from .descriptors import JanySONDescriptor
 from .options import Options
 from .utils import setdefaultattr
 if six.PY2:
-    from .utils import dir_py2   # pragma: no cover
+    from .utils import dir_py2
 
 
 __all__ = ['add_fields']
@@ -24,7 +24,7 @@ def dir_override(self):
         if not hasattr(self, field):
             try:
                 dir_list.remove(field)
-            except ValueError:
+            except ValueError:   # pragma: no cover
                 pass
     return dir_list
 
