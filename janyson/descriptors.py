@@ -33,7 +33,7 @@ class BaseJanySONDescriptor(object):
     def __init__(self, field, options):
         self.field = field
         if not isinstance(options, Options):
-            options = Options(options)
+            options = Options(options)   # pragma: no cover
         self.options = Options(options)
 
     def _get_value(self, obj):
