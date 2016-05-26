@@ -8,7 +8,7 @@ from .descriptors import JanySONDescriptor
 from .options import Options
 from .utils import setdefaultattr
 if six.PY2:
-    from .utils import dir_py2
+    from .utils import dir_py2   # pragma: no cover
 
 
 __all__ = ['add_fields']
