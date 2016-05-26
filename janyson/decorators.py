@@ -38,6 +38,9 @@ def add_fields(fields, field_options=None, janyson_field='janyson'):
             fields_is_dict = True
         elif isinstance(fields, (list, tuple)):
             fields_is_dict = False
+            if not isinstance(field_options, dict):
+                raise ValueError("specify common field options "
+                                 "with 'field_options' argument")
             options = field_options.copy()
         else:
             raise TypeError("'fields' must be dict, list, or tuple")
