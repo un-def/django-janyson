@@ -110,6 +110,23 @@ FIELDS_DIR_HIDE_NO_DEFAULT = {
     },
 }
 
+COMMON_FIELD_OPTIONS = {
+    'type': 'str',
+    'use_default': True,
+    'default': TEST_STR_DEFAULT,
+}
+
+COMMON_FIELDS_OVERRIDE = {
+    'str1': {},
+    'str2': {
+        'use_default': False,
+    },
+    'num': {
+        'type': 'num',
+        'default': TEST_NUM_DEFAULT
+    }
+}
+
 
 class StoredValuesTestCase(TestCase):
 
@@ -122,7 +139,7 @@ class StoredValuesTestCase(TestCase):
         if cls.JANYSON_FIELD:
             kwargs['janyson_field'] = cls.JANYSON_FIELD
         add_fields_to_item_model(FIELDS_WITHOUT_DEFAULT_VALUES, **kwargs)
-        item = models.Item.objects.create(name='test item')
+        item = models.Item.objects.create(name='stored_values')
         item.test_num = TEST_NUM
         item.test_str = TEST_STR
         item.test_bool = True
@@ -165,7 +182,7 @@ class DefaultValuesTestCase(TestCase):
     def setUpClass(cls):
         super(DefaultValuesTestCase, cls).setUpClass()
         add_fields_to_item_model(FIELDS_WITH_DEFAULT_VALUES)
-        item = models.Item.objects.create(name='test item')
+        item = models.Item.objects.create(name='default_values')
         cls.item_pk = item.pk
 
     def setUp(self):
@@ -196,7 +213,7 @@ class NoDefaultValuesTestCase(TestCase):
     def setUpClass(cls):
         super(NoDefaultValuesTestCase, cls).setUpClass()
         add_fields_to_item_model(FIELDS_WITHOUT_DEFAULT_VALUES)
-        item = models.Item.objects.create(name='test item')
+        item = models.Item.objects.create(name='no_default_values')
         cls.item_pk = item.pk
 
     def setUp(self):
@@ -257,3 +274,57 @@ class DirHideTestCase(TestCase):
 
     def test_default_hide(self):
         self.assertIn('test_default_hide', dir(self.item))
+
+
+class CommonFieldOptionsTestCase(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super(CommonFieldOptionsTestCase, cls).setUpClass()
+        add_fields_to_item_model(
+            COMMON_FIELDS_OVERRIDE, field_options=COMMON_FIELD_OPTIONS)
+
+    def setUp(self):
+        self.item = models.Item(name='common_field_options')
+
+    def test_no_override(self):
+        self.assertEqual(self.item.str1, TEST_STR_DEFAULT)
+
+    def test_override_use_default(self):
+        with self.assertRaises(AttributeError):
+            self.item.str2
+
+    def test_override_type_and_default(self):
+        self.assertEqual(self.item.num, TEST_NUM_DEFAULT)
+
+
+class AcceptableFieldsArgTypesTestCase(TestCase):
+
+    def test_fields_as_dict_without_common_fields_options(self):
+        add_fields_to_item_model(COMMON_FIELDS_OVERRIDE)
+        item = models.Item(name='fields_as_dict')
+        item.num = TEST_NUM
+        self.assertEqual(item.num, TEST_NUM)
+
+    def test_fields_as_dict_with_common_fields_options(self):
+        add_fields_to_item_model(
+            COMMON_FIELDS_OVERRIDE, field_options=COMMON_FIELD_OPTIONS)
+        item = models.Item(name='fields_as_dict_with_common')
+        self.assertEqual(item.str1, TEST_STR_DEFAULT)
+
+    def test_fields_as_list_without_common_fields_options(self):
+        with self.assertRaisesRegexp(ValueError, "common field options"):
+            add_fields_to_item_model(['str1', 'str2'])
+
+    def test_fields_as_list_with_common_fields_options(self):
+        add_fields_to_item_model(
+            ['str1', 'str2'], field_options=COMMON_FIELD_OPTIONS)
+        item = models.Item(name='fields_as_list_with_common')
+        item.str2 = TEST_STR
+        self.assertEqual(item.str1, TEST_STR_DEFAULT)
+        self.assertEqual(item.str2, TEST_STR)
+
+    def test_fields_as_str_with_common_fields_options(self):
+        with self.assertRaisesRegexp(TypeError, "'fields' must be"):
+            add_fields_to_item_model(
+                'str1', field_options=COMMON_FIELD_OPTIONS)
