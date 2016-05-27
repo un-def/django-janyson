@@ -6,6 +6,8 @@ from setuptools import find_packages, setup
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 
+version = __import__('janyson').__version__
+
 with open('README.md', encoding='utf-8') as f:
     long_description = f.read()
 try:
@@ -18,15 +20,17 @@ except (ImportError, OSError):
     print("!!! Can't convert README.md - install pandoc and/or pypandoc.")
 
 
+with open('requirements.txt', encoding='utf8') as f:
+    install_requires = [l.strip() for l in f.readlines() if
+                        l.strip() and not l.startswith('#')]
+
+
 setup(
     name='django-janyson',
-    version='0.1.0',
+    version=version,
     packages=find_packages(exclude=['tests']),
     include_package_data=True,
-    install_requires=[
-        'django>=1.9',
-        'six',
-    ],
+    install_requires=install_requires,
     license='BSD License',
     description='Virtual model fields that are transparently '
                 'mapped to Postgres jsonb',
