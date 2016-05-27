@@ -1,3 +1,8 @@
 *.pyc
+
 .coverage
 htmlcov/
+
+README.rst
+dist/
+django_janyson.egg-info/
