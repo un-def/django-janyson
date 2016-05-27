@@ -1,4 +1,5 @@
 import os
+import io
 
 from setuptools import find_packages, setup
 
@@ -8,19 +9,19 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 version = __import__('janyson').__version__
 
-with open('README.md', encoding='utf-8') as f:
+with io.open('README.md', encoding='utf-8') as f:
     long_description = f.read()
 try:
     import pypandoc
     long_description = pypandoc.convert(long_description, 'rst', 'md')
     long_description = long_description.replace('\r', '')
-    with open('README.rst', mode='w', encoding='utf-8') as f:
+    with io.open('README.rst', mode='w', encoding='utf-8') as f:
         f.write(long_description)
 except (ImportError, OSError):
     print("!!! Can't convert README.md - install pandoc and/or pypandoc.")
 
 
-with open('requirements.txt', encoding='utf8') as f:
+with io.open('requirements.txt', encoding='utf8') as f:
     install_requires = [l.strip() for l in f.readlines() if
                         l.strip() and not l.startswith('#')]
 
