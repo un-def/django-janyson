@@ -6,7 +6,7 @@ from imp import reload
 
 from django.test import TestCase
 
-from janyson import add_fields
+from janyson.decorators import add_fields
 
 from . import models
 
