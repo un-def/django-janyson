@@ -124,7 +124,7 @@ class BaseJanySONDescriptor(object):
                 setattr(obj, janyson_field, json_dict)
         if isinstance(json_dict, dict):
             return json_dict
-        else:
+        else:   # pragma: no cover
             error = self.errors['invalid_json_type'].format(
                 type=type(json_dict))
             raise TypeError(error)
