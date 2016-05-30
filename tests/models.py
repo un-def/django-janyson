@@ -15,3 +15,8 @@ class Item(models.Model):
 class Tag(models.Model):
 
     name = models.SlugField(max_length=32)
+
+
+class AnotherModel(models.Model):
+
+    name = models.SlugField(max_length=32)

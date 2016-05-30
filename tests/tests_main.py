@@ -84,6 +84,19 @@ FIELDS_WITH_DEFAULT_VALUES = {
     },
 }
 
+FIELDS_FK = {
+    'fk_instance': {
+        'type': 'fk',
+        'model': 'tests.Tag',
+        'use_instance': True,
+    },
+    'fk_no_instance': {
+        'type': 'fk',
+        'model': models.Tag,
+        'use_instance': False,
+    },
+}
+
 FIELDS_DIR_HIDE_DEFAULT = {
     'test_default_hide': {
         'type': 'str',
@@ -244,6 +257,63 @@ class NoDefaultValuesTestCase(TestCase):
     def test_dict_no_default_value_error(self):
         with self.assertRaises(AttributeError):
             self.item.test_dict
+
+
+class ForeignKeyRelationTestCase(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super(ForeignKeyRelationTestCase, cls).setUpClass()
+        add_fields_to_item_model(FIELDS_FK)
+        tag1 = models.Tag.objects.create(name='tag1')
+        tag2 = models.Tag.objects.create(name='tag2')
+        item = models.Item(name='fk')
+        item.fk_instance = tag1.pk
+        item.fk_no_instance = tag2.pk
+        item.save()
+
+    def setUp(self):
+        self.item = models.Item.objects.get(name='fk')
+
+    def test_use_instance_true(self):
+        tag1 = models.Tag.objects.get(name='tag1')
+        self.assertIsInstance(self.item.fk_instance, models.Tag)
+        self.assertEqual(self.item.fk_instance, tag1)
+
+    def test_use_instance_false(self):
+        tag2 = models.Tag.objects.get(name='tag2')
+        self.assertIsInstance(self.item.fk_no_instance, int)
+        self.assertEqual(self.item.fk_no_instance, tag2.pk)
+
+    def test_same_model_instance_assignment_use_instance_true(self):
+        tag = models.Tag.objects.create(name='new tag')
+        self.item.fk_instance = tag
+        self.assertEqual(self.item.fk_instance, tag)
+
+    def test_same_model_instance_assignment_use_instance_false(self):
+        tag = models.Tag.objects.create(name='new tag')
+        with self.assertRaisesRegexp(TypeError, "invalid value"):
+            self.item.fk_no_instance = tag
+
+    def test_int_assignment_use_instance_true(self):
+        tag = models.Tag.objects.create(name='new tag')
+        self.item.fk_instance = tag.pk
+        self.assertEqual(self.item.fk_instance, tag)
+
+    def test_int_instance_assignment_use_instance_false(self):
+        tag = models.Tag.objects.create(name='new tag')
+        self.item.fk_no_instance = tag.pk
+        self.assertEqual(self.item.fk_no_instance, tag.pk)
+
+    def test_same_model_instance_assignment_no_pk(self):
+        tag = models.Tag(name='new tag')
+        with self.assertRaisesRegexp(TypeError, "no pk"):
+            self.item.fk_instance = tag
+
+    def test_other_model_instance_assignment(self):
+        another = models.AnotherModel.objects.create(name='another instance')
+        with self.assertRaisesRegexp(TypeError, "invalid value"):
+            self.item.fk_instance = another
 
 
 class DirHideTestCase(TestCase):
