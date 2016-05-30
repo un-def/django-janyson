@@ -12,6 +12,6 @@ install:
   - pip install -r requirements_dev.txt
   - pip install coveralls
 script:
-  - coverage run --append runtests.py -U postgres -w
+  - coverage run runtests.py -U postgres -w
 after_success:
   coveralls
