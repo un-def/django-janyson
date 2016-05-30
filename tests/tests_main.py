@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 from imp import reload
 
 from django.test import TestCase
+from django.db.models import QuerySet
 
 from janyson.decorators import add_fields
 
@@ -92,6 +93,19 @@ FIELDS_FK = {
     },
     'fk_no_instance': {
         'type': 'fk',
+        'model': models.Tag,
+        'use_instance': False,
+    },
+}
+
+FIELDS_M2M = {
+    'm2m_instance': {
+        'type': 'm2m',
+        'model': 'tests.Tag',
+        'use_instance': True,
+    },
+    'm2m_no_instance': {
+        'type': 'm2m',
         'model': models.Tag,
         'use_instance': False,
     },
@@ -314,6 +328,99 @@ class ForeignKeyRelationTestCase(TestCase):
         another = models.AnotherModel.objects.create(name='another instance')
         with self.assertRaisesRegexp(TypeError, "invalid value"):
             self.item.fk_instance = another
+
+
+class ManyToManyRelationTestCase(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super(ManyToManyRelationTestCase, cls).setUpClass()
+        add_fields_to_item_model(FIELDS_M2M)
+        models.Tag.objects.bulk_create(
+            models.Tag(name='tag{}'.format(i)) for i in range(1, 5))
+        models.Item.objects.create(name='m2m')
+
+    def setUp(self):
+        self.item = models.Item.objects.get(name='m2m')
+        self.tags = models.Tag.objects.exclude(name='tag4')
+
+    def test_use_instance_true(self):
+        self.item.m2m_instance = self.tags
+        self.assertListEqual(list(self.item.m2m_instance), list(self.tags))
+
+    def test_use_instance_false(self):
+        tags_pk = [tag.pk for tag in self.tags]
+        self.item.m2m_no_instance = tags_pk
+        self.assertListEqual(self.item.m2m_no_instance, tags_pk)
+
+    def test_same_model_queryset_assignment_use_instance_true(self):
+        tags = models.Tag.objects.exclude(name='tag1')
+        self.item.m2m_instance = tags
+        self.assertIsInstance(self.item.m2m_instance, QuerySet)
+        self.assertEqual(list(self.item.m2m_instance), list(tags))
+
+    def test_same_model_queryset_assignment_use_instance_false(self):
+        tags_pk = [t.pk for t in
+                   models.Tag.objects.exclude(name__in=['tag1', 'tag3'])]
+        self.item.m2m_no_instance = tags_pk
+        self.assertIsInstance(self.item.m2m_no_instance, list)
+        self.assertEqual(self.item.m2m_no_instance, tags_pk)
+
+    def test_int_assignment_use_instance_true(self):
+        tags_pk = models.Tag.objects.exclude(
+            name='tag3').values_list('pk', flat=True)
+        self.item.m2m_instance = list(tags_pk)
+        self.assertIsInstance(self.item.m2m_instance, QuerySet)
+        self.assertEqual(list(self.item.m2m_instance),
+                         list(models.Tag.objects.filter(pk__in=tags_pk)))
+
+    def test_int_assignment_use_instance_false(self):
+        tags_pk = models.Tag.objects.exclude(
+            name='tag2').values_list('pk', flat=True)
+        self.item.m2m_no_instance = list(tags_pk)
+        self.assertIsInstance(self.item.m2m_no_instance, list)
+        self.assertEqual(self.item.m2m_no_instance, list(tags_pk))
+
+    def test_neg_int_assignment(self):
+        exclude_tag_pk = models.Tag.objects.get(name='tag3').pk
+        tags = models.Tag.objects.exclude(pk=exclude_tag_pk)
+        self.item.m2m_instance = [-exclude_tag_pk]
+        self.assertIsInstance(self.item.m2m_instance, QuerySet)
+        self.assertEqual(list(self.item.m2m_instance), list(tags))
+
+    def test_asterisk_assignment(self):
+        tags = models.Tag.objects.all()
+        self.item.m2m_instance = '*'
+        self.assertIsInstance(self.item.m2m_instance, QuerySet)
+        self.assertEqual(list(self.item.m2m_instance), list(tags))
+
+    def test_empty_assignment(self):
+        self.item.m2m_instance = []
+        self.assertIsInstance(self.item.m2m_instance, QuerySet)
+        self.assertEqual(list(self.item.m2m_instance), [])
+
+    def test_list_of_instances_assignment(self):
+        tags = [t for t in models.Tag.objects.all()]
+        self.item.m2m_instance = tags
+        self.assertIsInstance(self.item.m2m_instance, QuerySet)
+        self.assertEqual(list(self.item.m2m_instance), list(tags))
+
+    def test_list_of_instances_no_pk_assignment(self):
+        tags = [t for t in models.Tag.objects.all()]
+        tags.append(models.Tag(name='no pk'))
+        with self.assertRaisesRegexp(TypeError, "no pk"):
+            self.item.m2m_instance = tags
+
+    def test_list_of_instances_another_model_assignment(self):
+        tags = [t for t in models.Tag.objects.all()]
+        tags.append(models.Item(name='no pk'))
+        with self.assertRaisesRegexp(TypeError, "invalid value"):
+            self.item.m2m_instance = tags
+
+    def test_wrong_value_type_assignment(self):
+        tags = 'foo bar'
+        with self.assertRaisesRegexp(TypeError, "invalid value"):
+            self.item.m2m_instance = tags
 
 
 class DirHideTestCase(TestCase):

@@ -16,6 +16,9 @@ class Tag(models.Model):
 
     name = models.SlugField(max_length=32)
 
+    class Meta:
+        ordering = ['name']
+
 
 class AnotherModel(models.Model):
 
