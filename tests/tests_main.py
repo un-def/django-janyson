@@ -423,6 +423,53 @@ class ManyToManyRelationTestCase(TestCase):
             self.item.m2m_instance = tags
 
 
+class DeletionTestCase(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super(DeletionTestCase, cls).setUpClass()
+        add_fields_to_item_model(FIELDS_WITH_DEFAULT_VALUES)
+        add_fields_to_item_model(FIELDS_FK, no_reload=True)
+        add_fields_to_item_model(FIELDS_M2M, no_reload=True)
+        models.Item.objects.create(name='deletion')
+
+    def setUp(self):
+        self.item = models.Item.objects.get(name='deletion')
+
+    def test_set_and_delete(self):
+        self.item.test_num = TEST_NUM
+        self.assertEqual(self.item.test_num, TEST_NUM)
+        del self.item.test_num
+        self.assertEqual(self.item.test_num, TEST_NUM_DEFAULT)
+
+    def test_delete_already_deleted_from_json(self):
+        self.item.test_num = TEST_NUM
+        del self.item.janyson['test_num']
+        with self.assertRaisesRegexp(AttributeError, "test_num"):
+            del self.item.test_num
+
+    def test_delete_fk_cache(self):
+        tag = models.Tag.objects.create(name='test')
+        self.item.fk_instance = tag
+        self.assertFalse(hasattr(self.item, '_jnsn_cache'))
+        self.item.fk_instance
+        self.assertEqual(self.item._jnsn_cache['fk_instance_instance'], tag)
+        del self.item.fk_instance
+        self.assertNotIn('fk_instance_instance', self.item._jnsn_cache)
+
+    def test_delete_m2m_cache(self):
+        models.Tag.objects.create(name='test1')
+        models.Tag.objects.create(name='test2')
+        tags = models.Tag.objects.all()
+        self.item.m2m_instance = tags
+        self.assertFalse(hasattr(self.item, '_jnsn_cache'))
+        self.item.m2m_instance
+        self.assertEqual(
+            list(self.item._jnsn_cache['m2m_instance_queryset']), list(tags))
+        del self.item.m2m_instance
+        self.assertNotIn('m2m_instance_queryset', self.item._jnsn_cache)
+
+
 class DirHideTestCase(TestCase):
 
     @classmethod
