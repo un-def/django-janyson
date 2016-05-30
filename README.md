@@ -12,7 +12,7 @@ Store additional model fields as JSON object in PostgreSQL's `jsonb` field and w
 
 ### Requirements
 
-* Python 2 or 3 (tested with 2.7+ and 3.3+)
+* Python 2.7+ or 3.4+
 * Django 1.9+ with psycopg2
 * six
 
