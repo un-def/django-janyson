@@ -3,6 +3,8 @@
 .coverage
 htmlcov/
 
+.tox/
+
 README.rst
 dist/
 django_janyson.egg-info/
