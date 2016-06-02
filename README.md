@@ -10,14 +10,14 @@ Store additional model fields as JSON object in PostgreSQL's `jsonb` field and w
 ### Installation
 
 * Install the package using `pip install django-janyson`.
-* Add `janyson` to `INSTALLED_APPS` setting.
+* Add `janyson` to `INSTALLED_APPS` setting (optional).
 
 
 ### Requirements
 
 * Python 2.7+ or 3.4+
 * Django 1.9+ with psycopg2
-* six
+* [six](https://pypi.python.org/pypi/six)
 
 
 ### Example
@@ -100,9 +100,20 @@ True
 
 ### Tests
 
-`python runtests.py [-d TESTDBNAME] [-h HOSTNAME] [-p PORT] [-U USERNAME] [-P PASSWORD]`
+`$ python runtests.py [-d TESTDBNAME] [-h HOSTNAME] [-p PORT] [-U USERNAME] [-P PASSWORD] [-w]`
 
 Run `python runtests.py --help` for additional info.
+
+Test with multiple Python versions and measure code coverage (using [tox](https://pypi.python.org/pypi/tox) and [coverage.py](https://pypi.python.org/pypi/coverage)):
+
+```
+$ pip install -r requirements_dev.txt
+$ ./runtests.sh [TOX_OPTIONS] [-- RUNTESTS_OPTIONS]
+```
+
+Example:
+
+`$ ./runtests.sh -e py27,py35 -- -h 127.0.0.1 -p 5432 -U testuser -w`
 
 
 ### Documentation
