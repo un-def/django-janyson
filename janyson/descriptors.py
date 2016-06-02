@@ -95,8 +95,7 @@ class BaseJanySONDescriptor(object):
                         error += error_invalid
         if error:
             raise TypeError(error)
-        if (type_ in ('list', 'm2m') and
-                not isinstance(value, six.string_types)):
+        if type_ == 'm2m' and not isinstance(value, six.string_types):
             value = list(value)
         json_dict[self.field] = value
 

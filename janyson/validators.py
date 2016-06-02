@@ -8,12 +8,6 @@ import six
 __all__ = ['validators']
 
 
-def list_validator(value):
-    if isinstance(value, six.string_types):
-        return value == '*'
-    return isinstance(value, (list, tuple))
-
-
 def m2m_validator(value):
     if isinstance(value, six.string_types):
         return value == '*'
@@ -31,7 +25,7 @@ validators = {
     'num': lambda v: isinstance(v, (int, float)) and not isinstance(v, bool),
     'bool': lambda v: isinstance(v, bool),
     'nullbool': lambda v: v is None or isinstance(v, bool),
-    'list': list_validator,
+    'list': lambda v: isinstance(v, (list, tuple)),
     'dict': lambda v: isinstance(v, dict),
     'fk': lambda v: isinstance(v, int) and not isinstance(v, bool) and v > 0,
     'm2m': m2m_validator,

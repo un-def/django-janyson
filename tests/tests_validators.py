@@ -65,7 +65,7 @@ class ValidatorsTestCase(TestCase):
 
     def test_list_validator(self):
         self.run_list_validator_test('list', 'pos_int_list', 'neg_int_list',
-                                     'mixed_int_list', 'tuple', 'asterisk')
+                                     'mixed_int_list', 'tuple')
 
     def test_dict_validator(self):
         self.run_dict_validator_test('dict')
