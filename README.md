@@ -3,6 +3,8 @@ Django JanySON
 
 [![Build Status](https://travis-ci.org/un-def/django-janyson.svg?branch=master)](https://travis-ci.org/un-def/django-janyson)
 [![Coverage Status](https://coveralls.io/repos/github/un-def/django-janyson/badge.svg?branch=master)](https://coveralls.io/github/un-def/django-janyson?branch=master)
+[![PyPI version](https://badge.fury.io/py/django-janyson.svg)](https://pypi.python.org/pypi/django-janyson/)
+[![PyPI license](https://img.shields.io/pypi/l/django-janyson.svg?maxAge=3600)](https://raw.githubusercontent.com/un-def/django-janyson/master/LICENSE)
 
 Store additional model fields as JSON object in PostgreSQL's `jsonb` field and work with them as regular model fields. Need new boolean/text/foreign key/many-to-many/etc. field? Just add the decorator with the field description to your model. It's all! No more annoying migrations.
 
